@@ -359,6 +359,18 @@ class TuyaEntityConfig:
         """Return the mode (used by Number entities)."""
         return self._config.get("mode")
 
+    @property
+    def separate_brightness_message(self):
+        """Whether to send brightness as a separate message from power-on.
+
+        Some Tuya dimmer firmwares ignore a brightness value that arrives
+        in the same message as the power-on command, and instead restore
+        whatever brightness the device last had before being switched off.
+        Setting this true sends power-on first, then brightness as a
+        second message once the device is confirmed on.
+        """
+        return self._config.get("separate_brightness_message", False)
+
     def dps(self):
         """Iterate through the list of dps for this entity."""
         for d in self._config["dps"]:

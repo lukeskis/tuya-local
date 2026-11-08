@@ -5,6 +5,7 @@ products:
     model: SW2-AR
 entities:
   - entity: light
+    separate_brightness_message: true
     dps:
       - id: 1
         type: boolean

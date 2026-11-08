@@ -2,6 +2,7 @@
 Setup for different kinds of Tuya light devices
 """
 
+import asyncio
 import logging
 from struct import error as StructError
 from struct import pack, unpack
@@ -586,7 +587,25 @@ class TuyaLocalLight(TuyaLocalEntity, LightEntity):
                 settings = settings | self._effect_dps.get_values_to_set(
                     self._device, on_value, settings
                 )
-        if settings:
+        if (
+            not self.is_on
+            and self._switch_dps
+            and self._brightness_dps
+            and self._config.separate_brightness_message
+            and self._switch_dps.id in settings
+            and self._brightness_dps.id in settings
+        ):
+            brightness_id = self._brightness_dps.id
+            brightness_value = settings[brightness_id]
+            power_settings = {k: v for k, v in settings.items() if k != brightness_id}
+            _LOGGER.info(
+                "%s sending power-on and brightness as separate messages",
+                self._config.config_id,
+            )
+            await self._device.async_set_properties(power_settings)
+            await asyncio.sleep(0.25)
+            await self._device.async_set_properties({brightness_id: brightness_value})
+        elif settings:
             await self._device.async_set_properties(settings)
 
     async def async_turn_off(self):
